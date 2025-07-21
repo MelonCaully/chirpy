@@ -1,14 +1,34 @@
 package main
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+	"sync/atomic"
+)
+
+type apiConfig struct {
+	fileserverHits atomic.Int32
+}
 
 func main() {
-	serve := http.NewServeMux()
-	server := http.Server{
-		Handler: serve,
-		Addr:    ":8080",
-	}
-	serve.Handle("/", http.FileServer(http.Dir(".")))
-	server.ListenAndServe()
+	const filepathRoot = "."
+	const port = "8080"
 
+	apiCfg := apiConfig{
+		fileserverHits: atomic.Int32{},
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
+	mux.HandleFunc("GET /healthz", handlerReadiness)      // healthz endpoint
+	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics) // metrics endpoint
+	mux.HandleFunc("POST /reset", apiCfg.handlerReset)    // reset endpoint
+
+	server := &http.Server{
+		Handler: mux,
+		Addr:    ":" + port,
+	}
+
+	log.Printf("Serving files from %s on port: %s", filepathRoot, port)
+	log.Fatal(server.ListenAndServe())
 }
