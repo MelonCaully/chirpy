@@ -7,7 +7,7 @@ import (
 )
 
 func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
+	type request struct {
 		Body string `json:"body"`
 	}
 
@@ -16,15 +16,15 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
-	err := decoder.Decode(&params)
+	req := request{}
+	err := decoder.Decode(&req)
 
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		respondWithError(w, http.StatusInternalServerError, "Couldn't decode request", err)
 		return
 	}
 
-	if len(params.Body) > 140 {
+	if len(req.Body) > 140 {
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long", nil)
 		return
 	}
@@ -35,7 +35,7 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		"fornax":    {},
 	}
 
-	cleaned := getCleanedBody(params.Body, badWords)
+	cleaned := getCleanedBody(req.Body, badWords)
 
 	respondWithJSON(w, http.StatusOK, returnVals{
 		CleanedBody: cleaned,

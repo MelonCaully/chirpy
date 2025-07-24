@@ -8,10 +8,10 @@ import (
 
 func respondWithError(w http.ResponseWriter, code int, message string, err error) {
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
 	}
 	if code > 499 {
-		log.Panicf("Responding with 5XX error: %s", message)
+		log.Printf("Responding with 5XX error: %s", message)
 	}
 	type errorResponse struct {
 		Error string `json:"error"`
