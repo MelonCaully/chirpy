@@ -47,11 +47,13 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
-	mux.HandleFunc("GET /api/healthz", handlerReadiness)          // healthz endpoint
-	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)   // metrics endpoint
-	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)      // reset endpoint
-	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUsers)  // users endpoint
-	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp) // chirps endpoint
+	mux.HandleFunc("GET /api/healthz", handlerReadiness)               // healthz endpoint
+	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)        // metrics endpoint
+	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)           // reset endpoint
+	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUsers)       // users endpoint
+	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetAllChirps)      // chirps endpoint
+	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handleGetChirp) // chirps endpoint
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)      // chirps endpoint
 
 	server := &http.Server{
 		Handler: mux,
