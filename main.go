@@ -54,6 +54,7 @@ func main() {
 	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetAllChirps)      // chirps endpoint
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handleGetChirp) // chirps endpoint
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)      // chirps endpoint
+	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)             // login endpoint
 
 	server := &http.Server{
 		Handler: mux,
