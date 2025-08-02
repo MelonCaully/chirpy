@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MelonCaully/chirpy/internal/auth"
 	"github.com/MelonCaully/chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -21,13 +22,23 @@ type Chirp struct {
 
 func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request) {
 	type request struct {
-		Body   string    `json:"body"`
-		UserID uuid.UUID `json:"user_id"`
+		Body string `json:"body"`
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not fin JWT", err)
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not validate JWT", err)
+		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	req := request{}
-	err := decoder.Decode(&req)
+	err = decoder.Decode(&req)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode request", err)
 	}
@@ -39,7 +50,7 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 
 	chirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{
 		Body:   cleaned,
-		UserID: req.UserID,
+		UserID: userID,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "couldn't create chirp", err)
