@@ -17,6 +17,7 @@ type apiConfig struct {
 	db             *database.Queries
 	platform       string
 	jwtSecret      string
+	polkaKey       string
 }
 
 func main() {
@@ -39,6 +40,11 @@ func main() {
 		log.Fatal("JWT_SECRET must be set")
 	}
 
+	polkaKey := os.Getenv("POLKA_KEY")
+	if polkaKey == "" {
+		log.Fatal("POLKA_KEY must be set")
+	}
+
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("error obtaining database with '%s': %s", dbURL, err)
@@ -50,20 +56,24 @@ func main() {
 		db:             dbQueries,
 		platform:       platform,
 		jwtSecret:      jwtSecret,
+		polkaKey:       polkaKey,
 	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
-	mux.HandleFunc("GET /api/healthz", handlerReadiness)                // healthz endpoint
-	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)         // metrics endpoint
-	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)            // reset endpoint
-	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUsers)        // users endpoint
-	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetAllChirps)       // chirps endpoint
-	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirp) // chirps endpoint
-	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)       // chirps endpoint
-	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)              // login endpoint
-	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)          // refresh endpoint
-	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)            // revoke endpoint
+	mux.HandleFunc("GET /api/healthz", handlerReadiness)                      // healthz endpoint
+	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)               // metrics endpoint
+	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)                  // reset endpoint
+	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUsers)              // users endpoint
+	mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUsers)               // users endpoint
+	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetAllChirps)             // chirps endpoint
+	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirp)       // chirps endpoint
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)             // chirps endpoint
+	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handlerDeleteChirp) // chirps endpoint
+	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)                    // login endpoint
+	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)                // refresh endpoint
+	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)                  // revoke endpoint
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerUpdateRed)       // polka endpoint
 
 	server := &http.Server{
 		Handler: mux,
