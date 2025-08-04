@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -66,10 +68,17 @@ func GetBearerToken(headers http.Header) (string, error) {
 		return "", errors.New("no auth header included in request")
 	}
 
-	spliAuth := strings.Split(authHeader, " ")
-	if len(spliAuth) < 2 || spliAuth[0] != "Bearer" {
+	splitAuth := strings.Split(authHeader, " ")
+	if len(splitAuth) < 2 || splitAuth[0] != "Bearer" {
 		return "", errors.New("malformed authorization header")
 	}
 
-	return spliAuth[1], nil
+	return splitAuth[1], nil
+}
+
+// generates a secure, hex-encoded 256-bit (32-byte) random token.
+func MakeRefreshToken() string {
+	token := make([]byte, 32)
+	rand.Read(token)
+	return hex.EncodeToString(token)
 }

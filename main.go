@@ -54,14 +54,16 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
-	mux.HandleFunc("GET /api/healthz", handlerReadiness)               // healthz endpoint
-	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)        // metrics endpoint
-	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)           // reset endpoint
-	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUsers)       // users endpoint
-	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetAllChirps)      // chirps endpoint
-	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handleGetChirp) // chirps endpoint
-	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)      // chirps endpoint
-	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)             // login endpoint
+	mux.HandleFunc("GET /api/healthz", handlerReadiness)                // healthz endpoint
+	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)         // metrics endpoint
+	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)            // reset endpoint
+	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUsers)        // users endpoint
+	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetAllChirps)       // chirps endpoint
+	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirp) // chirps endpoint
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)       // chirps endpoint
+	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)              // login endpoint
+	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)          // refresh endpoint
+	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)            // revoke endpoint
 
 	server := &http.Server{
 		Handler: mux,
